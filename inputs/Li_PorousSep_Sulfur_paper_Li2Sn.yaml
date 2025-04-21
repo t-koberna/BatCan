@@ -36,66 +36,64 @@ cell-description:
         - species: 'TEGDME(e)'
           D_k: 1e-12
           C_k: 1.023e1 # kmol_k/m^3
-          D_scale: 0
         - species: 'Li+(e)'
           D_k: 1e-10
           C_k: 1.024 # kmol_k/m^3
-          D_scale: 2.93110900e-11
         - species: 'TFSI-(e)'
           D_k: 4e-10
-          C_k: 1.0229321 # kmol_k/m^3
-          D_scale: 0
+          C_k: 1.024 # kmol_k/m^3
         - species: S8(e)
           D_k: 1e-11
-          C_k: 1.943e-2 # kmol_k/m^3
-          D_scale: 4.36228302e-11
-        - species: S8-(e)
+          C_k: 1.943e-4 # kmol_k/m^3
+        - species: Li2S8(e)
           D_k: 6e-11
           C_k: 1.821e-4 # kmol_k/m^3
-          D_scale: 9.82232697e-11
-        - species: S6-(e)
+        - species: Li2S7(e)
           D_k: 6e-11
-          C_k: 3.314e-4 # kmol_k/m^3
-          D_scale: 2.66012159e-11
-        - species: S4-(e)
+          C_k: 1.821e-4 # kmol_k/m^3
+        - species: Li2S6(e)
+          D_k: 6e-11
+          C_k: 3.314e-6 # kmol_k/m^3
+        - species: Li2S5(e)
           D_k: 1e-10
-          C_k: 2.046e-5 # kmol_k/m^3
-          D_scale: 1.38236246e-12
-        - species: s2-(e)
+          C_k: 2.046e-8
+        - species: Li2S4(e)
           D_k: 1e-10
-          C_k: 5.348e-10 # kmol_k/m^3
-          D_scale: 8.14171853e-11
-        - species: s-(e)
+          C_k: 2.046e-8 # kmol_k/m^3
+        - species: Li2S3(e)
           D_k: 1e-10
-          C_k: 8.456e-13 # kmol_k/m^3
-          D_scale: 8.77803292e-11
+          C_k: 2.046e-10 # kmol_k/m^3
+        - species: Li2S2(e)
+          D_k: 1e-10
+          C_k: 5.348e-16 # kmol_k/m^3
     phi_0: 1.014 # Initial electric potential, V
     eps_electrolyte: 0.5 # Electrolyte volume fraction, -
-    flag_lithiated: 0
+    flag_lithiated: 1
     D_scale_coeff: 1e-11
-    C_k_atol: 1e-16
+    C_k_atol: 1e-11 #1e-26
   cathode:
     class: 'conversion_electrode'
-    n-points:  1
+    n-points: 1
     host-phase: 'carbon' # Cantera phase name
     surf-phase: 'carbon_electrolyte' # Cantera phase name
+    tpb-phase: 'tpb'
     electrolyte-phase: 'electrolyte' # Cantera phase name
     conversion-phases:
       - bulk-name: "sulfur" # Cantera phase name
         surf-name: "sulfur_surf" # Cantera name for surface phase
         elyte-name: "S8(e)"
         min-vol-frac: 1E-10
-        tpb-name: sulfur_tpb
+        tpb-name: "sulfur_tpb"
       - bulk-name: "lithium_sulfide" # Cantera phase name
         surf-name: "lithium_sulfide_surf" # Cantera name for surface phase
-        elyte-name: "s-(e)"
+        elyte-name: "Li2S2(e)"
         min-vol-frac: 1E-8
-        tpb-name: lithium_sulfide_tpb
+        tpb-name: "lithium_sulfide_tpb"
     initial-state: # Determine initial state of electrode
       method: "porosity"
       eps_init:
         - phase: sulfur
-          value: 0.09178743839675609  #11835748635371181 #0.091787
+          value: 0.091787  #0.11835748635371181 #0.091787
         - phase: lithium_sulfide
           value: 1E-05
     nucleation-density:
@@ -103,6 +101,11 @@ cell-description:
         value: 4521477015825
       - phase: lithium_sulfide
         value: 563475021696499.4
+    #stored-ion: # Details on the stored species. Used for capacity calc.
+      #phase: "lithium_sulfide"
+      #name: Li2S(s)
+      #charge: 2 # How many moles of charge per mole of species?
+      #n_phase: 1 # What is the index of this phase in the 'conversion-phases' list above (starting with zero)?
     stored-ion: # Details on the stored species. Used for capacity calc.
       phase: "sulfur"
       name: S8(s)
@@ -118,14 +121,16 @@ cell-description:
     C_dl: 1.5e-2 #F/m2
     plot_conv_ph:
       - name: 'S8'
-      - name: 'Li2S' # said LiS8, I think that was a typo
+      - name: 'Li2S'
     plot-species: # any extra species in the electrolyte that you want to plot.
       - name: 'S8(e)'
-      - name: 'S8-(e)'
-      - name: 'S6-(e)'
-      - name: 'S4-(e)'
-      - name: 'S2-(e)'
-      - name: 'S-(e)'
+      - name: 'Li2S8(e)'
+      - name: 'Li2S7(e)'
+      - name: 'Li2S6(e)'
+      - name: 'Li2S5(e)'
+      - name: 'Li2S4(e)'
+      - name: 'Li2S3(e)'
+      - name: 'Li2S2(e)'
 
 # Simulation parameters:
 parameters:
@@ -136,57 +141,44 @@ parameters:
     type: 'open-circuit'
     time: 5
   cell-test:
-    enable: True
-    type: 'fitting' # Flag to indicate if multiple simulations are run from a shell
+    enable: False # Flag to indicate if multiple simulations are run from a shell
+    type: 'fitting' # 'grid-analysis' or 'fitting'
   # Describe simulation type, parameters, etc.
   simulations:
     - type: 'CC_cycle' # Constant current cycling
       # Specify only one of i_ext or C-rate. The other should be null:
       i_ext: null #0.01 A/cm2 # input current density, format: XX units. Units are 'current/area', with no carat for exponents (e.g. A/cm2)
       C-rate: 0.1 # input C-rate
-      n_cycles: 0.5 # Number of cycles. Currently must be 0.5 or an int. ### 0.5
+      n_cycles: 0.5 # Number of cycles. Currently must be 0.5 or an int.
       first-step: 'discharge'  # Start with charge or discharge?
-      #first-step: 'charge'  # Start with charge or discharge?
+      non-dimensionalize: False # scale by 'init' values, 'equil' values, or not at all
       equilibrate:
         enable: True # Start with a hold at open circuit?
         time: 5 # If true, how long is the hold, s
-      phi-cutoff-lower: 1.8 # Simulation cuts off if E_Cell <= this value, V #######1.8
+      phi-cutoff-lower: 1.0 # Simulation cuts off if E_Cell <= this value, V
       phi-cutoff-upper: 5.2 # Simulation cuts off if E_Cell >= this value, V
       outputs:
         show-plots: True # Show the plots and save them (True), or just save
                           # them (False)
         save-name: 'Test_output1'
-    #- type: 'CC_cycle' # Constant current cycling
-      # Specify only one of i_ext or C-rate. The other should be null:
-    #  i_ext: null #0.01 A/cm2 # input current density, format: XX units. Units are 'current/area', with no carat for exponents (e.g. A/cm2)
-    #  C-rate: 0.5 # input C-rate
-    #  n_cycles: 0.5 # Number of cycles. Currently must be 0.5 or an int.
-    #  first-step: 'discharge'  # Start with charge or discharge?
-    #  equilibrate:
-    #    enable: True # Start with a hold at open circuit?
-    #    time: 5 # If true, how long is the hold, s
-    #  phi-cutoff-lower: 1.8 # Simulation cuts off if E_Cell <= this value, V
-    #  phi-cutoff-upper: 5.2 # Simulation cuts off if E_Cell >= this value, V
-    #  outputs:
-    #    show-plots: True # Show the plots and save them (True), or just save
-                          # them (False)
-    #    save-name: 'Test_output2'
+      #species-cutoff: 0 # Simulation cuts off if C_k <= this value, kmol/m3
     #- type: 'CC_cycle' # Constant current cycling
       # Specify only one of i_ext or C-rate. The other should be null:
     #  i_ext: null #0.01 A/cm2 # input current density, format: XX units. Units are 'current/area', with no carat for exponents (e.g. A/cm2)
     #  C-rate: 1 # input C-rate
     #  n_cycles: 0.5 # Number of cycles. Currently must be 0.5 or an int.
     #  first-step: 'discharge'  # Start with charge or discharge?
+    #  non-dimensionalize: False # scale by 'init' values, 'equil' values, or not at all
     #  equilibrate:
     #    enable: True # Start with a hold at open circuit?
     #    time: 5 # If true, how long is the hold, s
     #  phi-cutoff-lower: 1.8 # Simulation cuts off if E_Cell <= this value, V
     #  phi-cutoff-upper: 5.2 # Simulation cuts off if E_Cell >= this value, V
     #  outputs:
-    #    show-plots: True # Show the plots and save them (True), or just save
+    #    show-plots: False # Show the plots and save them (True), or just save
                           # them (False)
-    #    save-name: 'Test_output3'
-
+    #    save-name: 'Test_output2'
+      #species-cutoff: 0 # Simulation cuts off if C_k <= this value, kmol/m3
 
 
 # Cantera inputs:
@@ -221,15 +213,18 @@ phases:
 
 - name: electrolyte
   thermo: ideal-condensed
+  kinetics: Gas
+  reactions: [elyte-bulk-reactions]
   elements: [Li, C, F, N, H, O, E, S]
-  species: [TEGDME(e), Li+(e), TFSI-(e), S8(e), S8-(e), S6-(e), S4-(e),
-            S2-(e), S-(e)]
+  species: [TEGDME(e), Li+(e), TFSI-(e), S8(e), Li2S8(e), Li2S7(e), Li2S6(e),
+            Li2S5(e), Li2S4(e), Li2S3(e), Li2S2(e)]
   state:
     T: 300.0
     P: 1 atm
     X: {TEGDME(e): 10.23, Li+(e): 1.024, TFSI-(e): 1.0229321, S8(e): 1.943e-2,
-      S8-(e): 1.821e-4, S6-(e): 3.314e-4, S4-(e): 2.046e-5, S2-(e): 5.348e-10,
-      S-(e): 8.456e-13}
+      Li2S8(e): 1.821e-4, Li2S7(e): 1.821e-4, Li2S6(e): 3.314e-4,
+      Li2S5(e): 2.046e-5, Li2S4(e): 2.046e-5, Li2S3(e): 5.348e-10,
+      Li2S2(e): 8.456e-13}
   standard-concentration-basis: unity
 
 - name: lithium_sulfide
@@ -270,7 +265,7 @@ phases:
   thermo: edge
   species: [(dummy)]
   kinetics: edge
-  reactions: none
+  reactions: [lithium-sulfide-edge-reactions]
   state:
     T: 300.0
     P: 1 atm
@@ -324,7 +319,7 @@ species:
   thermo:
     model: constant-cp
     h0: -278 kJ/mol
-    s0: 0.0 J/mol/K
+    s0: 13.4 J/mol/K
   equation-of-state:
     model: constant-volume
     molar-volume: 5.51 cm^3/mol
@@ -364,47 +359,65 @@ species:
   equation-of-state:
     model: constant-volume
     molar-volume: 123.90338 cm^3/mol
-- name: S8-(e)
-  composition: {S: 8, E: 2}
+- name: Li2S8(e)
+  composition: {Li: 2, S: 8}
   thermo:
     model: constant-cp
-    h0: -450.78 kJ/mol
+    h0: -1174.7713 kJ/mol
     s0: 0.0 J/mol/K
   equation-of-state:
     model: constant-volume
     molar-volume: 86.156 cm^3/mol
-- name: S6-(e)
-  composition: {S: 6, E: 2}
+- name: Li2S7(e)
+  composition: {Li: 2, S: 7}
   thermo:
     model: constant-cp
-    h0: -445.15 kJ/mol
+    h0: -1180.160775 kJ/mol
+    s0: 0.0 J/mol/K
+  equation-of-state:
+    model: constant-volume
+    molar-volume: 82.43 cm^3/mol
+- name: Li2S6(e)
+  composition: {Li: 2, S: 6}
+  thermo:
+    model: constant-cp
+    h0: -1199.05815 kJ/mol
     s0: 0.0 J/mol/K
   equation-of-state:
     model: constant-volume
     molar-volume: 78.703 cm^3/mol
-- name: S4-(e)
-  composition: {S: 4, E: 2}
+- name: Li2S5(e)
+  composition: {Li: 2, S: 5}
   thermo:
     model: constant-cp
-    h0: -433.14 kJ/mol
+    h0: -1190.939725 kJ/mol
+    s0: 0.0 J/mol/K
+  equation-of-state:
+    model: constant-volume
+    molar-volume: 73.14 cm^3/mol
+- name: Li2S4(e)
+  composition: {Li: 2, S: 4}
+  thermo:
+    model: constant-cp
+    h0: -1190.5401 kJ/mol
     s0: 0.0 J/mol/K
   equation-of-state:
     model: constant-volume
     molar-volume: 67.581 cm^3/mol
-- name: S2-(e)
-  composition: {S: 2, E: 2}
+- name: Li2S3(e)
+  composition: {Li: 2, S: 3}
   thermo:
     model: constant-cp
-    h0: -401.82 kJ/mol
+    h0: -1155.405875 kJ/mol
     s0: 0.0 J/mol/K
   equation-of-state:
     model: constant-volume
     molar-volume: 59.678 cm^3/mol
-- name: S-(e)
-  composition: {S: 1, E: 2}
+- name: Li2S2(e)
+  composition: {Li: 2, S: 2}
   thermo:
     model: constant-cp
-    h0: -383.27 kJ/mol
+    h0: -1100.97465 kJ/mol
     s0: 0.0 J/mol/K
   equation-of-state:
     model: constant-volume
@@ -413,7 +426,7 @@ species:
   composition: {Li: 2, S: 1}
   thermo:
     model: constant-cp
-    h0: -1112.48 kJ/mol
+    h0: -1004.090025 kJ/mol
     s0: 0.0 J/mol/K
   equation-of-state:
     model: constant-volume
@@ -439,41 +452,108 @@ species:
 lithium-electrolyte-reactions:
 - equation: Li(b) <=> Li+(e) + electron
   id: lithium_faradaic_reaction
-  rate-constant: {A: 3.0e-8, b: 0.0, Ea: 0.0}
+  rate-constant: {A: 1e4, b: 0.0, Ea: 0.0}
   beta: 0.5
+  note: Original Assary mech reaction
+
+elyte-bulk-reactions:
+- equation: Li2S8(e) => Li2S6(e) + 0.25 S8(e)
+  id: elyte_bulk_1
+  rate-constant: {A: 1e-3, b: 0.0, Ea: 0.0}
+- equation: Li2S8(e) => Li2S4(e) + 0.5 S8(e)
+  id: elyte_bulk_2
+  rate-constant: {A: 1e-4, b: 0.0, Ea: 0.0}
+- equation: Li2S6(e) => Li2S4(e) + 0.25 S8(e)
+  id: elyte_bulk_3
+  rate-constant: {A: 1e-3, b: 0.0, Ea: 0.0}
+- equation: Li2S4(e) => Li2S2(e) + 0.25 S8(e)
+  id: elyte_bulk_4
+  rate-constant: {A: 1e-5, b: 0.0, Ea: 0.0}
+- equation: 2 Li2S4(e) => 2 Li2S3(e) + 0.25 S8(e)
+  id: elyte_bulk_5
+  rate-constant: {A: 1e-5, b: 0.0, Ea: 0.0}
+- equation: 2 Li2S3(e) => 2 Li2S2(e) + 0.25 S8(e)
+  id: elyte_bulk_6
+  rate-constant: {A: 1e-1, b: 0.0, Ea: 0.0}
+  note: Original Assary mech reaction
 
 sulfur-elyte-reactions:
 - equation: S8(s) <=> S8(e)
   id: sulfur_dissolution
-  rate-constant: {A: 1.9e-2, b: 0.0, Ea: 0.0}
+  rate-constant: {A: 1.0e-6, b: 0.0, Ea: 0.0}
+  note: Original Assary mech reaction
 
 carbon-elyte-reactions:
-- equation: 0.5 S8(e) + electron <=> 0.5 S8-(e)
-  id: sulfur_reduction_1
-  rate-constant: {A: 8.725e16, b: 0.0, Ea: 0.0}
+- equation: S8(e) + 2 Li+(e) + 2 electron <=> Li2S8(e)
+  id: carbon_elyte_1
+  rate-constant: {A: 1e13, b: 0.0, Ea: 0.0}
+  beta: 0.5
+  note: Original Assary mech reaction
+- equation: Li2S8(e) + 2 Li+(e) + 2 electron <=> Li2S6(e) + Li2S2(e)
+  id: carbon_elyte_2
+  rate-constant: {A: 1e10, b: 0.0, Ea: 0.0}
+  beta: 0.5
+  note: Original Assary mech reaction
+- equation: Li2S8(e) + 2 Li+(e) + 2 electron <=> 2 Li2S4(e)
+  id: carbon_elyte_3
+  rate-constant: {A: 1e7, b: 0.0, Ea: 0.0}
+  beta: 0.5
+  note: Original Assary mech reaction
+- equation: Li2S8(e) + 2 Li+(e) + 2 electron <=> Li2S3(e) + Li2S5(e)
+  id: carbon_elyte_4
+  rate-constant: {A: 1e8, b: 0.0, Ea: 0.0}
+  beta: 0.5
+- equation: Li2S7(e) + 2 Li+(e) + 2 electron <=> Li2S3(e) + Li2S4(e)
+  id: carbon_elyte_5
+  rate-constant: {A: 1e-1, b: 0.0, Ea: 0.0}
+  beta: 0.5
+- equation: Li2S7(e) + 2 Li+(e) + 2 electron <=> Li2S2(e) + Li2S5(e)
+  id: carbon_elyte_6
+  rate-constant: {A: 1e-1, b: 0.0, Ea: 0.0}
+  beta: 0.5
+- equation: Li2S6(e) + 2 Li+(e) + 2 electron <=> Li2S4(e) + Li2S2(e)
+  id: carbon_elyte_7
+  rate-constant: {A: 1e7, b: 0.0, Ea: 0.0}
+  beta: 0.5
+  note: Original Assary mech reaction
+- equation: Li2S6(e) + 2 Li+(e) + 2 electron <=> 2 Li2S3(e)
+  id: carbon_elyte_8
+  rate-constant: {A: 1e1, b: 0.0, Ea: 0.0}
+  beta: 0.5
+- equation: Li2S5(e) + 2 Li+(e) + 2 electron <=> Li2S3(e) + Li2S2(e)
+  id: carbon_elyte_9
+  rate-constant: {A: 1e4, b: 0.0, Ea: 0.0}
+  beta: 0.5
+- equation: Li2S4(e) + 2 Li+(e) + 2 electron <=> 2 Li2S2(e)
+  id: carbon_elyte_10
+  rate-constant: {A: 1e3, b: 0.0, Ea: 0.0}
   beta: 0.5
 
-- equation: 1.5 S8-(e) + electron <=> 2 S6-(e)
-  id: sulfur_reduction_2
-  rate-constant: {A: 4.331e17, b: 0.0, Ea: 0.0}
+lithium-sulfide-edge-reactions:
+- equation: Li2S8(e) + 2 Li+(e) + 2 electron <=> Li2S(s) + Li2S7(e)
+  id: li_sulfide_tpb_1
+  rate-constant: {A: 1e6, b: 0.0, Ea: 0.0}
   beta: 0.5
-
-- equation: S6-(e) + electron <=> 1.5 S4-(e)
-  id: sulfur_reduction_3
-  rate-constant: {A: 3.193e15, b: 0.0, Ea: 0.0}
+- equation: Li2S7(e) + 2 Li+(e) + 2 electron <=> Li2S(s) + Li2S6(e)
+  id: li_sulfide_tpb_2
+  rate-constant: {A: 1e1, b: 0.0, Ea: 0.0}
   beta: 0.5
-
-- equation: 0.5 S4-(e) + electron <=> S2-(e)
-  id: sulfur_reduction_4
-  rate-constant: {A: 2.375e12, b: 0.0, Ea: 0.0}
+- equation: Li2S6(e) + 2 Li+(e) + 2 electron <=> Li2S(s) + Li2S5(e)
+  id: li_sulfide_tpb_3
+  rate-constant: {A: 1e2, b: 0.0, Ea: 0.0}
   beta: 0.5
-
-- equation: 0.5 S2-(e) + electron <=> S-(e)
-  id: sulfur_reduction_5
-  rate-constant: {A: 8.655e13, b: 0.0, Ea: 0.0}
+- equation: Li2S5(e) + 2 Li+(e) + 2 electron <=> Li2S(s) + Li2S4(e)
+  id: li_sulfide_tpb_4
+  rate-constant: {A: 1e1, b: 0.0, Ea: 0.0}
   beta: 0.5
+- equation: Li2S4(e) + 2 Li+(e) + 2 electron <=> Li2S3(e) + Li2S(s)
+  id: li_sulfide_tpb_5
+  rate-constant: {A: 1e1, b: 0.0, Ea: 0.0}
+  beta: 0.5
+  note: Original Assary mech reaction
 
 lithium-sulfide-elyte-reactions:
-- equation: 2 Li+(e) + S-(e) <=> Li2S(s)
-  id: sulfur_reduction_6
-  rate-constant: {A: 10.75e-1, b: 0.0, Ea: 0.0}
+- equation: 2 Li2S2(e) => 2 Li2S(s) + 0.25 S8(e)
+  id: lithium_sulfide_elyte_1
+  rate-constant: {A: 2e-5, b: 0.0, Ea: 0.0}
+  note: Original Assary mech reaction
